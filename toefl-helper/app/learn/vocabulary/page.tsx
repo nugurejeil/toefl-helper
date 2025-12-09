@@ -11,9 +11,17 @@ import { PageLayout } from '@/components/layout'
 import { Button, Card, Badge } from '@/components/ui'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { useAuthStore } from '@/store/authStore'
+import {
+  createLearningSession,
+  updateLearningSession,
+  updateStreak,
+  createLearningRecord,
+} from '@/lib/utils/learningRecords'
 
 export default function VocabularyLearningPage() {
   const router = useRouter()
+  const { user } = useAuthStore()
   const [words, setWords] = useState<VocabularyWord[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
@@ -24,20 +32,39 @@ export default function VocabularyLearningPage() {
   const [isCompleted, setIsCompleted] = useState(false)
   const [startTime, setStartTime] = useState(Date.now())
   const [sessionKey, setSessionKey] = useState(0)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [wordStartTime, setWordStartTime] = useState(Date.now())
 
   useEffect(() => {
-    // Load 10 random words for the session
-    const sessionWords = getRandomWords(10)
-    setWords(sessionWords)
-    setCurrentIndex(0)
-    setIsFlipped(false)
-    setCorrectCount(0)
-    setIncorrectCount(0)
-    setShowReaction(false)
-    setLastAnswer(null)
-    setIsCompleted(false)
-    setStartTime(Date.now())
-  }, [sessionKey])
+    const initSession = async () => {
+      // Load 10 random words for the session
+      const sessionWords = getRandomWords(10)
+      setWords(sessionWords)
+      setCurrentIndex(0)
+      setIsFlipped(false)
+      setCorrectCount(0)
+      setIncorrectCount(0)
+      setShowReaction(false)
+      setLastAnswer(null)
+      setIsCompleted(false)
+      setStartTime(Date.now())
+      setWordStartTime(Date.now())
+
+      // Create learning session if user is logged in
+      if (user) {
+        const { data } = await createLearningSession({
+          userId: user.id,
+          sessionType: 'quick',
+          contentType: 'vocabulary',
+        })
+        if (data) {
+          setSessionId(data.id)
+        }
+      }
+    }
+
+    initSession()
+  }, [sessionKey, user])
 
   const currentWord = words[currentIndex]
   const progress = words.length > 0 ? ((currentIndex + 1) / words.length) * 100 : 0
@@ -47,7 +74,7 @@ export default function VocabularyLearningPage() {
     setIsFlipped(!isFlipped)
   }
 
-  const handleAnswer = (isCorrect: boolean) => {
+  const handleAnswer = async (isCorrect: boolean) => {
     if (isCorrect) {
       setCorrectCount(correctCount + 1)
     } else {
@@ -57,6 +84,22 @@ export default function VocabularyLearningPage() {
     setLastAnswer(isCorrect)
     setShowReaction(true)
 
+    // Save learning record
+    if (user && sessionId) {
+      const timeSpentSeconds = Math.floor((Date.now() - wordStartTime) / 1000)
+      await createLearningRecord({
+        userId: user.id,
+        sessionId: sessionId,
+        contentId: currentWord.id,
+        isCorrect: isCorrect,
+        timeSpentSeconds: timeSpentSeconds,
+        userAnswer: {
+          word: currentWord.word,
+          answered: isCorrect ? 'correct' : 'incorrect',
+        },
+      })
+    }
+
     setTimeout(() => {
       setShowReaction(false)
       setLastAnswer(null)
@@ -64,9 +107,21 @@ export default function VocabularyLearningPage() {
       if (currentIndex < words.length - 1) {
         setCurrentIndex(currentIndex + 1)
         setIsFlipped(false)
+        setWordStartTime(Date.now()) // Reset timer for next word
       } else {
         // Session completed
         setIsCompleted(true)
+
+        // Update session and streak
+        if (user && sessionId) {
+          const durationSeconds = Math.floor((Date.now() - startTime) / 1000)
+          updateLearningSession({
+            sessionId,
+            durationSeconds,
+            isCompleted: true,
+          })
+          updateStreak(user.id)
+        }
       }
     }, 2000)
   }

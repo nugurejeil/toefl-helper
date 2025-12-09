@@ -40,7 +40,9 @@ export default function SignUpPage() {
     if (result.error) {
       setError(result.error);
     } else {
-      router.push('/');
+      // 회원가입 성공 - 이메일 확인 필요 여부 체크
+      alert('회원가입이 완료되었습니다! 이메일 확인이 필요한 경우, 받은 이메일을 확인해주세요.');
+      router.push('/auth/login');
     }
   };
 

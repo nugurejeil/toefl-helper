@@ -10,8 +10,16 @@ import { CocoReaction } from '@/components/listening'
 import { AudioPlayer } from '@/components/diagnostic/AudioPlayer'
 import { getRandomListeningSession } from '@/lib/data/listeningData'
 import { ListeningPassage, ListeningQuestion } from '@/lib/types/listening'
+import { useAuthStore } from '@/store/authStore'
+import {
+  createLearningSession,
+  updateLearningSession,
+  updateStreak,
+  createLearningRecord,
+} from '@/lib/utils/learningRecords'
 
 export default function ListeningLearningPage() {
+  const { user } = useAuthStore()
   const [passage, setPassage] = useState<ListeningPassage | null>(null)
   const [questions, setQuestions] = useState<ListeningQuestion[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -21,16 +29,37 @@ export default function ListeningLearningPage() {
   const [showReaction, setShowReaction] = useState(false)
   const [isCompleted, setIsCompleted] = useState(false)
   const [sessionKey, setSessionKey] = useState(0)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [startTime, setStartTime] = useState(Date.now())
+  const [questionStartTime, setQuestionStartTime] = useState(Date.now())
 
   // Initialize session
   useEffect(() => {
-    const session = getRandomListeningSession()
-    setPassage(session.passage)
-    setQuestions(session.questions)
-    setAnswers(new Array(session.questions.length).fill(null))
-    setCurrentQuestionIndex(0)
-    setIsCompleted(false)
-  }, [sessionKey])
+    const initSession = async () => {
+      const session = getRandomListeningSession()
+      setPassage(session.passage)
+      setQuestions(session.questions)
+      setAnswers(new Array(session.questions.length).fill(null))
+      setCurrentQuestionIndex(0)
+      setIsCompleted(false)
+      setStartTime(Date.now())
+      setQuestionStartTime(Date.now())
+
+      // Create learning session if user is logged in
+      if (user) {
+        const { data } = await createLearningSession({
+          userId: user.id,
+          sessionType: 'standard',
+          contentType: 'listening',
+        })
+        if (data) {
+          setSessionId(data.id)
+        }
+      }
+    }
+
+    initSession()
+  }, [sessionKey, user])
 
   // Reset selection when question changes
   useEffect(() => {
@@ -38,6 +67,7 @@ export default function ListeningLearningPage() {
       setSelectedAnswer(null)
       setShowExplanation(false)
       setShowReaction(false)
+      setQuestionStartTime(Date.now())
     }
   }, [currentQuestionIndex, questions.length])
 
@@ -50,7 +80,7 @@ export default function ListeningLearningPage() {
     }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedAnswer === null) return
 
     // Update answers array
@@ -59,8 +89,26 @@ export default function ListeningLearningPage() {
     setAnswers(newAnswers)
 
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer
+    const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000)
+
     setShowExplanation(true)
     setShowReaction(true)
+
+    // Save learning record
+    if (user && sessionId) {
+      await createLearningRecord({
+        userId: user.id,
+        sessionId: sessionId,
+        contentId: currentQuestion.id,
+        isCorrect: isCorrect,
+        timeSpentSeconds: timeSpent,
+        userAnswer: {
+          question: currentQuestion.question,
+          selectedAnswer: currentQuestion.options[selectedAnswer],
+          correctAnswer: currentQuestion.options[currentQuestion.correctAnswer],
+        },
+      })
+    }
 
     // Hide reaction after 2 seconds
     setTimeout(() => {
@@ -74,6 +122,17 @@ export default function ListeningLearningPage() {
     } else {
       // Complete session
       setIsCompleted(true)
+
+      // Update session and streak
+      if (user && sessionId) {
+        const durationSeconds = Math.floor((Date.now() - startTime) / 1000)
+        updateLearningSession({
+          sessionId,
+          durationSeconds,
+          isCompleted: true,
+        })
+        updateStreak(user.id)
+      }
     }
   }
 

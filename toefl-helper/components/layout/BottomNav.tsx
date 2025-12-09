@@ -14,7 +14,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   {
     name: '홈',
-    path: '/',
+    path: '/dashboard',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path

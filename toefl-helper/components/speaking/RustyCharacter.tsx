@@ -68,14 +68,14 @@ export default function RustyCharacter({
     <div className="flex flex-col items-center gap-4 mb-6">
       {/* Character image */}
       <motion.div
-        className="w-32 h-32"
+        className="w-40 h-40"
         animate={bounceAnimation[state]}
       >
         <Image
           src="/Rusty_idle.webp"
           alt="Rusty the Fox"
-          width={128}
-          height={128}
+          width={160}
+          height={160}
           className="object-contain"
           priority
         />

@@ -26,9 +26,16 @@ export default function LoginPage() {
     const result = await signIn(email, password);
 
     if (result.error) {
-      setError(result.error);
+      // 더 친절한 에러 메시지
+      if (result.error.includes('Email not confirmed')) {
+        setError('이메일 확인이 필요합니다. 받은 이메일을 확인해주세요.');
+      } else if (result.error.includes('Invalid login credentials')) {
+        setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+      } else {
+        setError(result.error);
+      }
     } else {
-      router.push('/');
+      router.push('/dashboard');
     }
   };
 

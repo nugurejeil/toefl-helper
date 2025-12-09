@@ -71,12 +71,12 @@ export default function PennyCharacter({
   return (
     <div className="flex flex-col items-center gap-4 mb-6">
       {/* Character image */}
-      <motion.div className="w-32 h-32" animate={bounceAnimation[state]}>
+      <motion.div className="w-40 h-40" animate={bounceAnimation[state]}>
         <Image
           src="/Penny_idle.webp"
           alt="Penny the Rabbit"
-          width={128}
-          height={128}
+          width={160}
+          height={160}
           className="object-contain"
           priority
         />

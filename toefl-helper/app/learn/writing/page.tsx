@@ -10,10 +10,19 @@ import WritingEditor from '@/components/writing/WritingEditor';
 import { writingPrompts } from '@/lib/data/writingData';
 import { WritingPrompt, WritingFeedback } from '@/lib/types/writing';
 import { ChevronRight, RotateCcw, BookOpen } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import { useEffect } from 'react';
+import {
+  createLearningSession,
+  updateLearningSession,
+  updateStreak,
+  createLearningRecord,
+} from '@/lib/utils/learningRecords';
 
 type Phase = 'intro' | 'writing' | 'processing' | 'feedback' | 'complete';
 
 export default function WritingPage() {
+  const { user } = useAuthStore();
   const [phase, setPhase] = useState<Phase>('intro');
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
   const [currentPrompt, setCurrentPrompt] = useState<WritingPrompt>(
@@ -24,8 +33,30 @@ export default function WritingPage() {
   const [pennyState, setPennyState] = useState<
     'idle' | 'writing' | 'thinking' | 'encouraging'
   >('idle');
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [promptStartTime, setPromptStartTime] = useState(Date.now());
+  const [completedPrompts, setCompletedPrompts] = useState<number>(0);
+
+  // Initialize session
+  useEffect(() => {
+    const initSession = async () => {
+      if (user && !sessionId) {
+        const { data } = await createLearningSession({
+          userId: user.id,
+          sessionType: 'standard',
+          contentType: 'writing',
+        });
+        if (data) {
+          setSessionId(data.id);
+        }
+      }
+    };
+
+    initSession();
+  }, [user, sessionId]);
 
   const handleStartWriting = () => {
+    setPromptStartTime(Date.now());
     setPhase('writing');
     setPennyState('writing');
   };
@@ -55,6 +86,27 @@ export default function WritingPage() {
       setFeedback(result);
       setPhase('feedback');
       setPennyState('encouraging');
+
+      // Save learning record
+      if (user && sessionId) {
+        const timeSpent = Math.floor((Date.now() - promptStartTime) / 1000);
+        await createLearningRecord({
+          userId: user.id,
+          sessionId: sessionId,
+          contentId: currentPrompt.id,
+          isCorrect: result.scores.overall >= 7, // Consider overall score >= 7 as "correct"
+          timeSpentSeconds: timeSpent,
+          userAnswer: {
+            prompt: currentPrompt.prompt,
+            essay: essay,
+            wordCount: essay.trim().split(/\s+/).filter(Boolean).length,
+            scores: result.scores,
+            estimatedScore: result.estimatedScore,
+          },
+          feedback: result.feedback,
+        });
+        setCompletedPrompts(prev => prev + 1);
+      }
     } catch (error) {
       console.error('Error analyzing essay:', error);
       alert('에세이 분석 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -80,9 +132,22 @@ export default function WritingPage() {
       setEssay('');
       setFeedback(null);
       setPennyState('idle');
+      setPromptStartTime(Date.now());
     } else {
+      // Complete session
       setPhase('complete');
       setPennyState('encouraging');
+
+      // Update session and streak
+      if (user && sessionId) {
+        const totalTime = Math.floor((Date.now() - promptStartTime) / 1000);
+        updateLearningSession({
+          sessionId,
+          durationSeconds: totalTime,
+          isCompleted: true,
+        });
+        updateStreak(user.id);
+      }
     }
   };
 

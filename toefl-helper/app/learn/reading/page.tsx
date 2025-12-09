@@ -10,9 +10,17 @@ import { PageLayout } from '@/components/layout'
 import { Button, Card, Badge } from '@/components/ui'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import { useAuthStore } from '@/store/authStore'
+import {
+  createLearningSession,
+  updateLearningSession,
+  updateStreak,
+  createLearningRecord,
+} from '@/lib/utils/learningRecords'
 
 export default function ReadingLearningPage() {
   const router = useRouter()
+  const { user } = useAuthStore()
   const [passage, setPassage] = useState<ReadingPassage | null>(null)
   const [questions, setQuestions] = useState<ReadingQuestion[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -25,28 +33,45 @@ export default function ReadingLearningPage() {
   const [startTime, setStartTime] = useState(Date.now())
   const [questionStartTime, setQuestionStartTime] = useState(Date.now())
   const [sessionKey, setSessionKey] = useState(0)
+  const [sessionId, setSessionId] = useState<string | null>(null)
 
   useEffect(() => {
-    // Load random reading session
-    const session = getRandomReadingSession()
-    setPassage(session.passage)
-    setQuestions(session.questions)
-    setCurrentQuestionIndex(0)
-    setSelectedAnswer(null)
-    setAnswers([])
-    setShowExplanation(false)
-    setShowReaction(false)
-    setLastAnswer(null)
-    setIsCompleted(false)
-    setStartTime(Date.now())
-    setQuestionStartTime(Date.now())
-  }, [sessionKey])
+    const initSession = async () => {
+      // Load random reading session
+      const session = getRandomReadingSession()
+      setPassage(session.passage)
+      setQuestions(session.questions)
+      setCurrentQuestionIndex(0)
+      setSelectedAnswer(null)
+      setAnswers([])
+      setShowExplanation(false)
+      setShowReaction(false)
+      setLastAnswer(null)
+      setIsCompleted(false)
+      setStartTime(Date.now())
+      setQuestionStartTime(Date.now())
+
+      // Create learning session if user is logged in
+      if (user) {
+        const { data } = await createLearningSession({
+          userId: user.id,
+          sessionType: 'standard',
+          contentType: 'reading',
+        })
+        if (data) {
+          setSessionId(data.id)
+        }
+      }
+    }
+
+    initSession()
+  }, [sessionKey, user])
 
   const currentQuestion = questions[currentQuestionIndex]
   const progress = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0
   const correctCount = answers.filter(a => a.isCorrect).length
 
-  const handleSubmitAnswer = () => {
+  const handleSubmitAnswer = async () => {
     if (selectedAnswer === null || !currentQuestion) return
 
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer
@@ -64,6 +89,22 @@ export default function ReadingLearningPage() {
     setShowReaction(true)
     setShowExplanation(true)
 
+    // Save learning record
+    if (user && sessionId) {
+      await createLearningRecord({
+        userId: user.id,
+        sessionId: sessionId,
+        contentId: currentQuestion.id,
+        isCorrect: isCorrect,
+        timeSpentSeconds: timeSpent,
+        userAnswer: {
+          question: currentQuestion.question,
+          selectedAnswer: currentQuestion.options[selectedAnswer],
+          correctAnswer: currentQuestion.options[currentQuestion.correctAnswer],
+        },
+      })
+    }
+
     setTimeout(() => {
       setShowReaction(false)
     }, 2000)
@@ -78,7 +119,19 @@ export default function ReadingLearningPage() {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
       setQuestionStartTime(Date.now())
     } else {
+      // Session completed
       setIsCompleted(true)
+
+      // Update session and streak
+      if (user && sessionId) {
+        const durationSeconds = Math.floor((Date.now() - startTime) / 1000)
+        updateLearningSession({
+          sessionId,
+          durationSeconds,
+          isCompleted: true,
+        })
+        updateStreak(user.id)
+      }
     }
   }
 

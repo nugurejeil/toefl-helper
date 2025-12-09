@@ -10,6 +10,13 @@ import AudioRecorder from '@/components/speaking/AudioRecorder';
 import { speakingPrompts } from '@/lib/data/speakingData';
 import { SpeakingPrompt, SpeakingFeedback } from '@/lib/types/speaking';
 import { Clock, ChevronRight, RotateCcw } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import {
+  createLearningSession,
+  updateLearningSession,
+  updateStreak,
+  createLearningRecord,
+} from '@/lib/utils/learningRecords';
 
 type Phase =
   | 'intro'
@@ -20,6 +27,7 @@ type Phase =
   | 'complete';
 
 export default function SpeakingPage() {
+  const { user } = useAuthStore();
   const [phase, setPhase] = useState<Phase>('intro');
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
   const [currentPrompt, setCurrentPrompt] = useState<SpeakingPrompt>(
@@ -33,6 +41,9 @@ export default function SpeakingPage() {
   const [rustyState, setRustyState] = useState<
     'idle' | 'listening' | 'thinking' | 'encouraging'
   >('idle');
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [promptStartTime, setPromptStartTime] = useState(Date.now());
+  const [completedPrompts, setCompletedPrompts] = useState<number>(0);
 
   // Preparation timer
   useEffect(() => {
@@ -49,7 +60,26 @@ export default function SpeakingPage() {
     }
   }, [phase, preparationTimeLeft]);
 
+  // Initialize session
+  useEffect(() => {
+    const initSession = async () => {
+      if (user && !sessionId) {
+        const { data } = await createLearningSession({
+          userId: user.id,
+          sessionType: 'standard',
+          contentType: 'speaking',
+        });
+        if (data) {
+          setSessionId(data.id);
+        }
+      }
+    };
+
+    initSession();
+  }, [user, sessionId]);
+
   const handleStartSession = () => {
+    setPromptStartTime(Date.now());
     setPhase('preparation');
     setPreparationTimeLeft(currentPrompt.preparationTime);
     setRustyState('idle');
@@ -84,6 +114,26 @@ export default function SpeakingPage() {
       setFeedback(result);
       setPhase('feedback');
       setRustyState('encouraging');
+
+      // Save learning record
+      if (user && sessionId) {
+        const timeSpent = Math.floor((Date.now() - promptStartTime) / 1000);
+        await createLearningRecord({
+          userId: user.id,
+          sessionId: sessionId,
+          contentId: currentPrompt.id,
+          isCorrect: result.scores.overall >= 7, // Consider overall score >= 7 as "correct"
+          timeSpentSeconds: timeSpent,
+          userAnswer: {
+            prompt: currentPrompt.question,
+            transcription: result.transcription,
+            scores: result.scores,
+            estimatedScore: result.estimatedScore,
+          },
+          feedback: result.feedback,
+        });
+        setCompletedPrompts(prev => prev + 1);
+      }
     } catch (error) {
       console.error('Error analyzing speech:', error);
       alert('음성 분석 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -100,9 +150,22 @@ export default function SpeakingPage() {
       setPhase('intro');
       setFeedback(null);
       setRustyState('idle');
+      setPromptStartTime(Date.now());
     } else {
+      // Complete session
       setPhase('complete');
       setRustyState('encouraging');
+
+      // Update session and streak
+      if (user && sessionId) {
+        const totalTime = Math.floor((Date.now() - promptStartTime) / 1000);
+        updateLearningSession({
+          sessionId,
+          durationSeconds: totalTime,
+          isCompleted: true,
+        });
+        updateStreak(user.id);
+      }
     }
   };
 
