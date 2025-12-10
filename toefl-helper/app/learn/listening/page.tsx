@@ -206,7 +206,7 @@ export default function ListeningLearningPage() {
                   <p className="text-2xl font-bold text-honey-brown mb-2">
                     정확도: {accuracy.toFixed(0)}%
                   </p>
-                  <ProgressBar progress={accuracy} />
+                  <ProgressBar value={accuracy} />
                 </div>
 
                 {accuracy >= 80 && (
@@ -278,7 +278,7 @@ export default function ListeningLearningPage() {
             </Badge>
           </div>
 
-          <ProgressBar progress={progress} />
+          <ProgressBar value={progress} />
         </div>
 
         {/* Passage Info */}

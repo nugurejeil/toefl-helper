@@ -21,7 +21,6 @@ export default function StreakCounter({ currentStreak, longestStreak }: StreakCo
           transition={{
             duration: 2,
             repeat: Infinity,
-            ease: "easeInOut",
           }}
         >
           🔥

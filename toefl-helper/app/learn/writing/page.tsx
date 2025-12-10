@@ -7,6 +7,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import PennyCharacter from '@/components/writing/PennyCharacter';
 import WritingEditor from '@/components/writing/WritingEditor';
+import PercentageLoader from '@/components/ui/PercentageLoader';
 import { writingPrompts } from '@/lib/data/writingData';
 import { WritingPrompt, WritingFeedback } from '@/lib/types/writing';
 import { ChevronRight, RotateCcw, BookOpen } from 'lucide-react';
@@ -173,10 +174,7 @@ export default function WritingPage() {
     wordCount <= currentPrompt.wordLimit.max;
 
   return (
-    <PageLayout
-      title="라이팅 연습"
-      description="페니와 함께 라이팅 실력을 키워봐요"
-    >
+    <PageLayout>
       <div className="max-w-4xl mx-auto pb-20">
         <PennyCharacter state={pennyState} />
 
@@ -315,17 +313,10 @@ export default function WritingPage() {
               className="space-y-6"
             >
               <Card variant="white" className="p-12 text-center">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                  className="w-16 h-16 border-4 border-strawberry-pink border-t-transparent rounded-full mx-auto mb-4"
+                <PercentageLoader
+                  message="에세이를 분석하고 있어요..."
+                  subMessage="AI가 당신의 글을 읽고 피드백을 준비하고 있습니다"
                 />
-                <h3 className="text-xl font-bold text-cocoa-brown mb-2">
-                  에세이를 분석하고 있어요...
-                </h3>
-                <p className="text-text-secondary">
-                  AI가 당신의 글을 읽고 피드백을 준비하고 있습니다
-                </p>
               </Card>
             </motion.div>
           )}

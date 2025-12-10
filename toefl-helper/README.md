@@ -200,15 +200,69 @@ import { Badge } from '@/components/ui';
 - ✅ RLS 정책 설정
 - ✅ Functions & Triggers
 
-## 다음 단계 (Phase 2)
+## 배포
 
-- [ ] 홈 화면 구현
-- [ ] 진단 테스트 기능
-- [ ] 단어 학습 (모찌 햄스터)
-- [ ] 리딩 학습 (토스티 고양이)
-- [ ] 리스닝 학습 (코코 북극곰)
+### Vercel 배포
+
+이 프로젝트는 Vercel에 최적화되어 있습니다.
+
+#### 1. Vercel에 배포하기
+
+```bash
+# Vercel CLI 설치 (아직 설치하지 않았다면)
+pnpm add -g vercel
+
+# 배포
+vercel
+```
+
+또는 GitHub 저장소를 Vercel에 연결하여 자동 배포를 설정할 수 있습니다.
+
+#### 2. 환경 변수 설정
+
+Vercel 대시보드에서 다음 환경 변수를 설정하세요:
+
+**필수 환경 변수:**
+- `NEXT_PUBLIC_SUPABASE_URL`: Supabase 프로젝트 URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase Anonymous Key
+- `OPENAI_API_KEY`: OpenAI API 키 (Whisper STT용)
+- `ANTHROPIC_API_KEY`: Anthropic API 키 (Claude 피드백용)
+
+#### 3. 빌드 설정
+
+Vercel은 자동으로 Next.js 프로젝트를 감지하지만, 다음 설정을 확인하세요:
+
+- **Framework Preset**: Next.js
+- **Build Command**: `pnpm build`
+- **Output Directory**: `.next` (자동 설정)
+- **Install Command**: `pnpm install`
+
+#### 4. 성능 최적화
+
+- ✅ 이미지 최적화 (WebP, AVIF 지원)
+- ✅ 자동 코드 스플리팅
+- ✅ 서버 컴포넌트 활용
+- ✅ 압축 활성화
+- ✅ 보안 헤더 설정
+
+### 빌드 및 프로덕션
+
+```bash
+# 로컬에서 프로덕션 빌드 테스트
+pnpm build
+pnpm start
+```
+
+## 프로젝트 진행 상황
 
 자세한 내용은 `TOEFL80_TODO.md`를 참고하세요.
+
+### 완료된 Phase
+- ✅ Phase 1: 기반 구축 + 디자인 시스템
+- ✅ Phase 2: 핵심 학습 기능
+- ✅ Phase 3: AI 통합
+- ✅ Phase 4: 개인화 & 진도관리
+- 🚧 Phase 5: Polish & 출시 (진행 중)
 
 ## 문서
 

@@ -35,7 +35,6 @@ export default function RustyCharacter({
       transition: {
         duration: 2,
         repeat: Infinity,
-        ease: 'easeInOut',
       },
     },
     listening: {
@@ -44,7 +43,6 @@ export default function RustyCharacter({
       transition: {
         duration: 1.5,
         repeat: Infinity,
-        ease: 'easeInOut',
       },
     },
     thinking: {

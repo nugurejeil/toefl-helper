@@ -25,8 +25,8 @@ export default function AudioRecorder({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const animationFrameRef = useRef<number>();
-  const durationIntervalRef = useRef<NodeJS.Timeout>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
+  const durationIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Initialize media recorder
   const startRecording = async () => {
@@ -152,7 +152,6 @@ export default function AudioRecorder({
                 duration: 0.3 + i * 0.05,
                 repeat: Infinity,
                 repeatType: 'reverse',
-                ease: 'easeInOut',
               }}
             />
           ))}

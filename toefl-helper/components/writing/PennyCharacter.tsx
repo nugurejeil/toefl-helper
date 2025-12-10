@@ -35,7 +35,6 @@ export default function PennyCharacter({
       transition: {
         duration: 0.6,
         repeat: Infinity,
-        ease: [0.25, 0.1, 0.25, 1], // Custom ease for bouncy effect
         repeatDelay: 0.8,
       },
     },
@@ -44,7 +43,6 @@ export default function PennyCharacter({
       transition: {
         duration: 1.2,
         repeat: Infinity,
-        ease: 'easeOut',
         repeatDelay: 0.3,
       },
     },
@@ -54,7 +52,6 @@ export default function PennyCharacter({
       transition: {
         duration: 0.8,
         repeat: Infinity,
-        ease: 'easeInOut',
       },
     },
     encouraging: {
@@ -63,7 +60,6 @@ export default function PennyCharacter({
       transition: {
         duration: 0.8,
         repeat: 3,
-        ease: [0.4, 0, 0.2, 1], // Bouncy jump
       },
     },
   };

@@ -55,7 +55,6 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
       ref={ref}
       initial={{ opacity: 0, y: 100 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 100 }}
-      transition={{ duration: 0.8, delay: index * 0.2, ease: [0.25, 0.1, 0.25, 1] }}
       className="relative overflow-hidden"
     >
       <div
@@ -131,7 +130,6 @@ export default function LandingPage() {
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
           >
             <motion.h1
               className="text-6xl md:text-8xl font-bold text-cocoa-brown mb-6 font-[var(--font-title-en)]"
@@ -202,7 +200,6 @@ export default function LandingPage() {
                 transition={{
                   duration: 0.5,
                   delay: 1.2 + i * 0.1,
-                  ease: [0.25, 0.1, 0.25, 1],
                 }}
                 whileHover={{
                   scale: 1.2,

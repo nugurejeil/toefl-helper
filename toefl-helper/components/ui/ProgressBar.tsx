@@ -44,7 +44,6 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
             className="h-full rounded-full bg-gradient-to-r from-[var(--soft-peach)] via-[var(--strawberry-pink)] to-[var(--strawberry-pink)]"
             initial={{ width: 0 }}
             animate={{ width: `${clampedValue}%` }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
           />
         ) : (
           <div
@@ -57,7 +56,6 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
             className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"
             initial={{ x: '-100%' }}
             animate={{ x: '100%' }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           />
         )}
       </div>

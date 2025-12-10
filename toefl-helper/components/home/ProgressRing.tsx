@@ -53,7 +53,6 @@ export default function ProgressRing({
                 strokeDasharray={circumference}
                 initial={{ strokeDashoffset: circumference }}
                 animate={{ strokeDashoffset }}
-                transition={{ duration: 1, ease: 'easeOut' }}
               />
               {/* Gradient Definition */}
               <defs>

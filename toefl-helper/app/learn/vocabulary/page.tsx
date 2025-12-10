@@ -11,6 +11,7 @@ import { PageLayout } from '@/components/layout'
 import { Button, Card, Badge } from '@/components/ui'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { Confetti, CelebrationParticles } from '@/components/animations'
 import { useAuthStore } from '@/store/authStore'
 import {
   createLearningSession,
@@ -34,6 +35,8 @@ export default function VocabularyLearningPage() {
   const [sessionKey, setSessionKey] = useState(0)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [wordStartTime, setWordStartTime] = useState(Date.now())
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [showCelebration, setShowCelebration] = useState(false)
 
   useEffect(() => {
     const initSession = async () => {
@@ -49,6 +52,7 @@ export default function VocabularyLearningPage() {
       setIsCompleted(false)
       setStartTime(Date.now())
       setWordStartTime(Date.now())
+      setShowCelebration(false)
 
       // Create learning session if user is logged in
       if (user) {
@@ -70,6 +74,17 @@ export default function VocabularyLearningPage() {
   const progress = words.length > 0 ? ((currentIndex + 1) / words.length) * 100 : 0
   const totalAnswered = correctCount + incorrectCount
 
+  // Trigger celebration when session is completed with high accuracy
+  useEffect(() => {
+    if (isCompleted && words.length > 0) {
+      const total = correctCount + incorrectCount
+      const accuracy = total > 0 ? Math.round((correctCount / total) * 100) : 0
+      if (accuracy >= 80) {
+        setShowCelebration(true)
+      }
+    }
+  }, [isCompleted, correctCount, incorrectCount, words.length])
+
   const handleFlip = () => {
     setIsFlipped(!isFlipped)
   }
@@ -77,6 +92,9 @@ export default function VocabularyLearningPage() {
   const handleAnswer = async (isCorrect: boolean) => {
     if (isCorrect) {
       setCorrectCount(correctCount + 1)
+      // Trigger celebration effects for correct answers
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 100)
     } else {
       setIncorrectCount(incorrectCount + 1)
     }
@@ -239,6 +257,13 @@ export default function VocabularyLearningPage() {
               홈으로 돌아가기
             </Button>
           </div>
+
+          {/* Celebration for high accuracy */}
+          <CelebrationParticles
+            show={showCelebration}
+            emoji={['🌟', '⭐', '✨', '🎉', '🎊']}
+            count={20}
+          />
         </div>
       </PageLayout>
     )
@@ -335,6 +360,9 @@ export default function VocabularyLearningPage() {
 
         {/* Mochi Reaction */}
         <MochiReaction isCorrect={lastAnswer} show={showReaction} />
+
+        {/* Celebration Effects */}
+        <Confetti trigger={showConfetti} variant="burst" />
       </div>
     </PageLayout>
   )

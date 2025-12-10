@@ -7,6 +7,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import RustyCharacter from '@/components/speaking/RustyCharacter';
 import AudioRecorder from '@/components/speaking/AudioRecorder';
+import PercentageLoader from '@/components/ui/PercentageLoader';
 import { speakingPrompts } from '@/lib/data/speakingData';
 import { SpeakingPrompt, SpeakingFeedback } from '@/lib/types/speaking';
 import { Clock, ChevronRight, RotateCcw } from 'lucide-react';
@@ -184,7 +185,7 @@ export default function SpeakingPage() {
   };
 
   return (
-    <PageLayout title="스피킹 연습" description="러스티와 함께 스피킹 실력을 키워봐요">
+    <PageLayout>
       <div className="max-w-3xl mx-auto pb-20">
         <RustyCharacter state={rustyState} />
 
@@ -320,17 +321,10 @@ export default function SpeakingPage() {
               className="space-y-6"
             >
               <Card variant="white" className="p-12 text-center">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                  className="w-16 h-16 border-4 border-strawberry-pink border-t-transparent rounded-full mx-auto mb-4"
+                <PercentageLoader
+                  message="답변을 분석하고 있어요..."
+                  subMessage="AI가 당신의 답변을 듣고 피드백을 준비하고 있습니다"
                 />
-                <h3 className="text-xl font-bold text-cocoa-brown mb-2">
-                  답변을 분석하고 있어요...
-                </h3>
-                <p className="text-text-secondary">
-                  AI가 당신의 답변을 듣고 피드백을 준비하고 있습니다
-                </p>
               </Card>
             </motion.div>
           )}

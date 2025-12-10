@@ -29,7 +29,6 @@ export default function MochiReaction({ isCorrect, show }: MochiReactionProps) {
               transition={{
                 duration: 1,
                 repeat: 2,
-                ease: 'easeInOut'
               }}
               className="relative"
             >
@@ -98,7 +97,6 @@ export default function MochiReaction({ isCorrect, show }: MochiReactionProps) {
                     transition={{
                       duration: 1.5,
                       delay: i * 0.02,
-                      ease: 'easeOut'
                     }}
                     className="absolute top-1/2 left-1/2"
                   >

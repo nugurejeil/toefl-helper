@@ -29,7 +29,6 @@ export default function CocoReaction({ isCorrect, show }: CocoReactionProps) {
               transition={{
                 duration: 0.8,
                 repeat: 2,
-                ease: 'easeInOut'
               }}
               className="relative"
             >
@@ -96,7 +95,6 @@ export default function CocoReaction({ isCorrect, show }: CocoReactionProps) {
                     transition={{
                       duration: 1.2,
                       delay: i * 0.03,
-                      ease: 'easeOut'
                     }}
                     className="absolute top-1/2 left-1/2"
                   >
